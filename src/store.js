@@ -20,6 +20,7 @@ const defaults = () => ({
     autoSubmitDisputeEvidence: false,      // dispute responses always need approval
     neverContactAfterAttempts: 3,          // stop chasing a customer after this many messages
     quietHours: { start: 21, end: 8 },     // do not send messages between these hours (merchant local time)
+    timezone: process.env.MERCHANT_TIMEZONE || "Asia/Kuala_Lumpur", // timezone the quiet hours are judged in
     tone: "warm and professional",
   },
   cases: [],       // open and closed leak cases

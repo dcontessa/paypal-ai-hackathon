@@ -5,7 +5,7 @@
 export function evaluate(action, kase, rules, context = {}) {
   const reasons = [];
   const amount = Number(kase.amount || 0);
-  const hour = context.hour ?? new Date().getHours();
+  const hour = context.hour ?? localHour(rules.timezone);
 
   // Hard stops first
   if (kase.contactAttempts >= rules.neverContactAfterAttempts && action.contactsCustomer) {
@@ -54,6 +54,16 @@ export function evaluate(action, kase, rules, context = {}) {
   return verdict("act", "Within mandate: amount, discount, timing and contact limits all satisfied");
 }
 
+// Quiet hours are judged in the merchant's own timezone, not the server's.
+export function localHour(timezone) {
+  try {
+    const h = new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: timezone || "UTC" }).format(new Date());
+    return Number(h) % 24;
+  } catch {
+    return new Date().getUTCHours();
+  }
+}
+
 function inQuietHours(hour, q) {
   if (!q) return false;
   if (q.start > q.end) return hour >= q.start || hour < q.end; // wraps midnight
@@ -73,6 +83,6 @@ export function describeRules(rules) {
     rules.autoOfferPause ? "May offer a subscription pause instead of cancellation." : "Ask before offering a pause.",
     rules.autoSubmitDisputeEvidence ? "May submit dispute evidence alone." : "Always ask before submitting dispute evidence.",
     `Never contact a customer more than ${rules.neverContactAfterAttempts} times about one case.`,
-    `No messages between ${rules.quietHours.start}:00 and ${rules.quietHours.end}:00.`,
+    `No messages between ${rules.quietHours.start}:00 and ${rules.quietHours.end}:00 (${rules.timezone || "UTC"}).`,
   ];
 }
