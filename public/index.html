@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recoup</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #171d25; --panel2: #1e2631; --line: #2a3441;
+    --text: #e8edf2; --muted: #93a1b1; --accent: #28c76f; --accent2: #ffb020; --danger: #ff5c5c; --blue: #4f8cff;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: .3px; }
+  header h1 span { color: var(--accent); }
+  .badge { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; margin-left: 8px; }
+  main { padding: 24px 28px; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+  .stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+  .stat .label { color: var(--muted); font-size: 13px; }
+  .stat .value { font-size: 32px; font-weight: 700; margin-top: 6px; }
+  .stat.recovered .value { color: var(--accent); }
+  .stat.risk .value { color: var(--accent2); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+  section h2 { font-size: 15px; margin: 0 0 12px; display: flex; justify-content: space-between; align-items: center; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: #06200f; border-color: var(--accent); font-weight: 600; }
+  button.warn { background: var(--accent2); color: #2b1d00; border-color: var(--accent2); font-weight: 600; }
+  button.ghost { background: transparent; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .case { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; background: var(--panel2); }
+  .case .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .case .ref { font-weight: 600; }
+  .case .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin-right: 6px; }
+  .pill.invoice { color: #8fc1ff; border-color: #2f4d7a; }
+  .pill.renewal { color: #c9a7ff; border-color: #55407a; }
+  .pill.dispute { color: #ffb3b3; border-color: #7a3a3a; }
+  .pill.act { color: var(--accent); border-color: #1f6b43; }
+  .pill.ask { color: var(--accent2); border-color: #7a5a14; }
+  .pill.refuse { color: var(--danger); border-color: #7a2f2f; }
+  .action { border-left: 3px solid var(--accent2); padding: 10px 12px; margin-top: 10px; background: #141a22; border-radius: 0 8px 8px 0; }
+  .action.act { border-left-color: var(--accent); }
+  .action.refuse { border-left-color: var(--danger); }
+  .action .why { color: var(--muted); font-size: 12px; margin: 4px 0 8px; }
+  .action pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; background: #0f141a; padding: 10px; border-radius: 8px; margin: 8px 0; max-height: 180px; overflow: auto; }
+  .row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .rules label { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .rules input[type=number] { width: 80px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  .rules input[type=checkbox] { transform: scale(1.2); }
+  .rulesText { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 10px; }
+  .ledger table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ledger td, .ledger th { text-align: left; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+  .ledger th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .amount { text-align: right !important; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .empty { color: var(--muted); font-size: 13px; padding: 16px; text-align: center; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--panel2); border: 1px solid var(--line); padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  .form { display: grid; gap: 8px; margin-top: 8px; }
+  .form input { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font-size: 13px; }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Re<span>coup</span> <span class="badge" id="mode">loading</span><span class="badge" id="agentBadge"></span></h1>
+  <div class="toolbar">
+    <button id="syncBtn" title="Pull unpaid invoices and open disputes from PayPal">Sync from PayPal</button>
+    <button class="primary" id="runBtn">Run agent</button>
+    <button class="ghost" id="resetBtn">Reset demo</button>
+  </div>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat recovered"><div class="label">Recovered</div><div class="value" id="recovered">0</div><div class="muted" id="recoveredNote">money that was already earned</div></div>
+    <div class="stat risk"><div class="label">At risk in open cases</div><div class="value" id="atRisk">0</div><div class="muted" id="openCases"></div></div>
+    <div class="stat"><div class="label">Awaiting your approval</div><div class="value" id="pending">0</div><div class="muted">agent proposals outside the mandate</div></div>
+    <div class="stat"><div class="label">Agent actions taken</div><div class="value" id="executed">0</div><div class="muted">within mandate, no approval needed</div></div>
+  </div>
+
+  <section>
+    <h2>Open cases <span class="muted" id="caseCount"></span></h2>
+    <div id="cases"></div>
+    <details>
+      <summary>Add a case for the demo</summary>
+      <div class="row">
+        <button id="simRenewal">Simulate failed renewal</button>
+        <button id="simDisputeProof">Simulate dispute (with tracking)</button>
+        <button id="simDisputeNoProof">Simulate dispute (no proof)</button>
+      </div>
+      <div class="form" id="invoiceForm">
+        <div class="muted">Create and send a real sandbox invoice (needs PayPal credentials)</div>
+        <input id="invEmail" placeholder="Recipient sandbox email" value="sb-fbman53079977@personal.example.com" />
+        <input id="invName" placeholder="Recipient name" value="Test Buyer" />
+        <input id="invAmount" placeholder="Amount" value="120" />
+        <input id="invDesc" placeholder="Description" value="Consulting session" />
+        <input id="invDue" type="date" />
+        <div class="row"><button id="createInvoice">Create and send invoice</button></div>
+      </div>
+    </details>
+  </section>
+
+  <aside style="display:grid; gap:20px; align-content:start;">
+    <section class="rules">
+      <h2>Mandate <button class="ghost" id="saveRules">Save</button></h2>
+      <div id="rulesForm"></div>
+      <div class="rulesText" id="rulesText"></div>
+    </section>
+    <section class="ledger">
+      <h2>Recovery ledger</h2>
+      <table><thead><tr><th>When</th><th>Case</th><th>Via</th><th class="amount">Amount</th></tr></thead><tbody id="ledger"></tbody></table>
+    </section>
+    <section>
+      <h2>Agent log</h2>
+      <div id="log" class="muted" style="max-height:260px; overflow:auto; font-size:12px; line-height:1.6"></div>
+    </section>
+  </aside>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let S = null;
+const fmt = (n, c) => `${c || (S && S.totals.currency) || ""} ${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const toast = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2600); };
+const api = async (path, method = "GET", body) => {
+  const r = await fetch(path, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d;
+};
+
+async function load() {
+  S = await api("/api/state");
+  $("#mode").textContent = S.paypalConfigured ? "PayPal sandbox" : "simulated mode";
+  $("#agentBadge").textContent = S.agent === "claude" ? "agent: Claude" : "agent: template";
+  $("#recovered").textContent = fmt(S.totals.recovered);
+  $("#atRisk").textContent = fmt(S.totals.atRisk);
+  $("#openCases").textContent = `${S.totals.openCases} open case${S.totals.openCases === 1 ? "" : "s"}`;
+  $("#pending").textContent = S.totals.pendingApprovals;
+  $("#executed").textContent = S.actions.filter(a => a.status === "executed" && a.verdict === "act").length;
+  renderCases(); renderRules(); renderLedger(); renderLog();
+  $("#invoiceForm").style.display = S.paypalConfigured ? "grid" : "none";
+}
+
+function renderCases() {
+  const open = S.cases.filter(c => c.status === "open");
+  $("#caseCount").textContent = `${open.length}`;
+  if (!open.length) { $("#cases").innerHTML = `<div class="empty">No open cases. Sync from PayPal or add one for the demo.</div>`; return; }
+  $("#cases").innerHTML = open.map(c => {
+    const a = S.actions.find(x => x.caseId === c.id && ["pending", "executed", "refused", "failed"].includes(x.status));
+    const meta = c.type === "invoice" ? `${c.daysOverdue || 0} days overdue, due ${c.dueDate || "n/a"}`
+      : c.type === "renewal" ? `${c.planName || "subscription"}, ${c.failureCount || 1} failed attempt${(c.failureCount || 1) > 1 ? "s" : ""}`
+      : `${(c.reason || "").replace(/_/g, " ").toLowerCase()}, respond by ${c.respondBy || "n/a"}${c.trackingNumber ? ", tracking on file" : ", no delivery proof"}`;
+    return `<div class="case">
+      <div class="top"><div><span class="pill ${c.type}">${c.type}</span><span class="ref">${c.ref}</span> <span class="muted">${c.customerName || ""}</span></div><div><strong>${fmt(c.amount, c.currency)}</strong></div></div>
+      <div class="meta">${meta} · contacted ${c.contactAttempts || 0}x · source: ${c.source || ""}</div>
+      ${a ? renderAction(a) : `<div class="row"><button onclick="runOne('${c.id}')">Ask agent</button><button class="ghost" onclick="recovered('${c.id}')">Mark recovered</button></div>`}
+    </div>`;
+  }).join("");
+}
+
+function renderAction(a) {
+  const tag = a.verdict === "act" ? "acted within mandate" : a.verdict === "ask" ? "needs your approval" : "refused by mandate";
+  const status = a.status === "executed" ? ` · done (${a.result?.mode || ""})` : a.status === "failed" ? ` · failed: ${a.error}` : "";
+  const win = a.winLikelihood != null ? ` · win likelihood ${a.winLikelihood}%` : "";
+  const disc = a.discountPercent ? ` · ${a.discountPercent}% discount` : "";
+  return `<div class="action ${a.verdict}">
+    <div><span class="pill ${a.verdict}">${tag}</span><strong>${a.type.replace(/_/g, " ")}</strong>${disc}${win}<span class="muted">${status}</span></div>
+    <div class="why">${a.rationale || ""}<br><em>Mandate: ${a.verdictReason}</em></div>
+    ${a.message ? `<details open><summary>${a.subject || "message"}</summary><pre>${esc(a.message)}</pre></details>` : ""}
+    ${a.status === "pending" ? `<div class="row"><button class="primary" onclick="approve('${a.id}')">Approve and send</button><button onclick="decline('${a.id}')">Decline</button><button class="ghost" onclick="recovered('${a.caseId}')">Mark recovered</button></div>` : ""}
+    ${a.status === "executed" ? `<div class="row"><button class="ghost" onclick="recovered('${a.caseId}')">Mark recovered</button><button class="ghost" onclick="runOne('${a.caseId}')">Next step</button></div>` : ""}
+  </div>`;
+}
+
+function renderRules() {
+  const r = S.rules;
+  const fields = [
+    ["autoChaseInvoicesOverdueDays", "Auto-chase invoices after (days overdue)", "number"],
+    ["maxAutoDiscountPercent", "Max discount without asking (%)", "number"],
+    ["maxAutoActionAmount", `Max amount for auto action (${S.totals.currency})`, "number"],
+    ["neverContactAfterAttempts", "Max contacts per case", "number"],
+    ["autoRetryFailedRenewals", "Retry failed renewals automatically", "checkbox"],
+    ["autoOfferPause", "May offer a pause instead of cancel", "checkbox"],
+    ["autoSubmitDisputeEvidence", "May submit dispute evidence alone", "checkbox"],
+  ];
+  $("#rulesForm").innerHTML = fields.map(([k, label, t]) =>
+    `<label>${label}<input type="${t}" data-k="${k}" ${t === "checkbox" ? (r[k] ? "checked" : "") : `value="${r[k]}"`} /></label>`).join("");
+  $("#rulesText").innerHTML = S.rulesText.map(t => `• ${t}`).join("<br>");
+}
+
+function renderLedger() {
+  if (!S.ledger.length) { $("#ledger").innerHTML = `<tr><td colspan="4" class="empty">Nothing recovered yet</td></tr>`; return; }
+  $("#ledger").innerHTML = S.ledger.map(e => `<tr><td>${new Date(e.at).toLocaleDateString()}</td><td>${e.caseRef}</td><td>${e.via}</td><td class="amount">${fmt(e.amount, e.currency)}</td></tr>`).join("");
+}
+
+function renderLog() {
+  $("#log").innerHTML = S.actions.slice(0, 30).map(a =>
+    `${new Date(a.proposedAt).toLocaleTimeString()} · ${a.caseRef} · ${a.type.replace(/_/g, " ")} → <span class="pill ${a.verdict}">${a.verdict}</span> ${a.status}${a.source === "claude" ? " · Claude" : ""}`).join("<br>") || "No actions yet";
+}
+
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+async function runOne(caseId) { try { await api("/api/run", "POST", { caseId }); await load(); } catch (e) { toast(e.message); } }
+async function approve(id) { try { await api(`/api/actions/${id}/approve`, "POST", {}); toast("Approved and executed"); await load(); } catch (e) { toast(e.message); } }
+async function decline(id) { try { await api(`/api/actions/${id}/decline`, "POST", { note: "declined by merchant" }); await load(); } catch (e) { toast(e.message); } }
+async function recovered(caseId) { try { await api(`/api/cases/${caseId}/recovered`, "POST", {}); toast("Recorded as recovered"); await load(); } catch (e) { toast(e.message); } }
+
+$("#runBtn").onclick = async () => { $("#runBtn").disabled = true; try { const r = await api("/api/run", "POST", {}); toast(`${r.actions.length} proposal${r.actions.length === 1 ? "" : "s"}`); await load(); } catch (e) { toast(e.message); } $("#runBtn").disabled = false; };
+$("#syncBtn").onclick = async () => { try { const r = await api("/api/sync", "POST"); toast(r.note || `Synced ${r.synced} cases`); await load(); } catch (e) { toast(e.message); } };
+$("#resetBtn").onclick = async () => { await api("/api/demo/reset", "POST"); toast("Demo reset"); await load(); };
+$("#simRenewal").onclick = async () => { await api("/api/simulate/renewal-failed", "POST", {}); await load(); };
+$("#simDisputeProof").onclick = async () => { await api("/api/simulate/dispute", "POST", { trackingNumber: "MY987654321", customerName: "Wei" }); await load(); };
+$("#simDisputeNoProof").onclick = async () => { await api("/api/simulate/dispute", "POST", { customerName: "Hana", amount: 420 }); await load(); };
+$("#saveRules").onclick = async () => {
+  const patch = {};
+  document.querySelectorAll("#rulesForm input").forEach(i => patch[i.dataset.k] = i.type === "checkbox" ? i.checked : Number(i.value));
+  await api("/api/rules", "PUT", patch); toast("Mandate saved"); await load();
+};
+$("#createInvoice").onclick = async () => {
+  try {
+    const r = await api("/api/cases/invoice", "POST", { recipientEmail: $("#invEmail").value, recipientName: $("#invName").value, amount: Number($("#invAmount").value), description: $("#invDesc").value, dueDate: $("#invDue").value || undefined });
+    toast(`Invoice ${r.invoice.number} sent (${r.invoice.status})`); await load();
+  } catch (e) { toast(e.message); }
+};
+$("#invDue").value = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10);
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>
