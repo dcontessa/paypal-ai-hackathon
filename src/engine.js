@@ -90,11 +90,11 @@ export async function runAgent({ caseId } = {}) {
   const s = store.get();
   const targets = s.cases.filter((c) => c.status === "open" && (!caseId || c.id === caseId));
   const results = [];
-  for (const kase of targets) {
-    // one pending action per case
-    const pending = s.actions.find((a) => a.caseId === kase.id && a.status === "pending");
-    if (pending) continue;
-    const proposal = await propose(kase, s.rules, s.merchant);
+  // one pending action per case; proposals run in parallel, execution stays sequential
+  const todo = targets.filter((kase) => !s.actions.find((a) => a.caseId === kase.id && a.status === "pending"));
+  const proposals = await Promise.all(todo.map((kase) => propose(kase, s.rules, s.merchant)));
+  for (const [i, kase] of todo.entries()) {
+    const proposal = proposals[i];
     const { verdict, reason } = evaluate(proposal, kase, s.rules);
     const action = store.addAction({
       id: store.id("act"),
