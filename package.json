@@ -1,0 +1,19 @@
+{
+  "name": "recoup",
+  "version": "0.1.0",
+  "description": "Recoup: an AI revenue recovery agent for PayPal merchants. Finds money already earned but not collected (unpaid invoices, failed subscription renewals, disputes) and recovers it under merchant-set approval rules.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "express": "^4.21.2"
+  },
+  "license": "MIT"
+}
