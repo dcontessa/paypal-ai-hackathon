@@ -78,6 +78,7 @@ app.post("/api/cases/invoice", wrap(async (req, res) => {
     type: "invoice", ref: inv.detail.invoice_number, paypalId: inv.id,
     customerName: recipientName, customerEmail: recipientEmail,
     amount: inv.amount?.value ?? amount, currency: s.merchant.currency, dueDate: due,
+    customerFirstName: (recipientName || "").split(" ")[0],
     daysOverdue: due ? Math.max(0, Math.floor((Date.now() - new Date(due)) / 86400_000)) : 0,
     description, source: "paypal-create",
   });
